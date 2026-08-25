@@ -15,6 +15,7 @@
     "lib/core.js",
     "lib/client.js",
     "cordis.patch.yml",
+    "assets/screenshot.png",
     "README.md",
     "LICENSE"
   ],

@@ -1,18 +1,27 @@
 # dsh-kanban-flow
 
-**Agent-driven kanban boards for DeepSeek Harness — one board per workspace, one task session per item.**
+**Agent-driven kanban boards for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — one board per workspace, one task session per item.**
 
-Partially based on the [dsh-kanban](https://github.com/alpacachen/dsh-kanban) plugin architecture, rebuilt around a
-multica-style human/agent workflow: you triage, the agent works, comments every step, and asks for review when it
-needs you.
+[![CI](https://github.com/thomasvvugt/dsh-kanban-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/thomasvvugt/dsh-kanban-flow/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Install
+![A kanban board in the DSH web UI: five fixed columns, one card per item, latest agent activity on every card](assets/screenshot.png)
+
+**You triage. The agent picks up, works, narrates every step in its own task session, and asks for review when it needs you.** The board enforces the workflow — not vibes: agents can't grab unassigned work, can't skip your review, and can't close items behind your back.
+
+Partially based on the [dsh-kanban](https://github.com/alpacachen/dsh-kanban) plugin architecture, rebuilt around a multica-style human/agent workflow.
+
+## Quick start
 
 ```sh
-dsh plugin --profile web add /path/to/dsh-kanban-flow
+# from npm — prebuilt, no build-approval step
+dsh plugin --profile web add dsh-kanban-flow
+
+# or straight from GitHub
+dsh plugin --profile web add github:thomasvvugt/dsh-kanban-flow
 ```
 
-Restart `dsh web` afterwards. Confirm with `dsh --profile web --dump-config` (look for the `dsh-kanban-flow` layer).
+Restart `dsh web` afterwards. Confirm with `dsh --profile web --dump-config` (look for the `dsh-kanban-flow` layer). A kanban icon appears next to every workspace in the sidebar — click it to open that workspace's board.
 
 ## The workflow
 
@@ -28,37 +37,30 @@ Columns are fixed: **Backlog → To Do → In Progress → Review → Done**
 | Agent | In Progress → Done | Self-evaluated completion — only when confirmation is OFF |
 | Human | Review → Done / In Progress | Accept / rework |
 
-Agents can never move items into To Do, never complete from Review, and never reopen Done items. The host plugin
-enforces all of this in the `kanbanflow_move_item` tool — illegal moves are rejected with an explanation.
+The host plugin enforces all of this in the `kanbanflow_move_item` tool — agents never move items into To Do, never complete from Review, and illegal moves are rejected with an explanation.
 
-Commenting on an item while it is in Review (on the card **or** in the item's task session) sends the agent back to
-work: it acknowledges, moves the item Review → In Progress and addresses the feedback in the same turn.
+Commenting on an item while it is in Review (on the card **or** in the item's task session) sends the agent back to work: it acknowledges, moves the item Review → In Progress and addresses the feedback in the same turn.
 
-## Features
+## Highlights
 
-- **Kanban icon next to every workspace** in the sidebar — click to open that workspace's board
-- **Board opens in-app**: clicking a workspace (or its kanban icon) opens the workspace's session in the
-  conversation area with the **Board** tab selected — no popup
-- **Board toggles**: clicking the same workspace again switches back to chat; clicking any session in the
-  sidebar dismisses the board too — navigating away from the board always lands you in the conversation
-- **Session-less workspaces**: a workspace with no conversations yet has no view area for its Board tab —
-  its board pins into the current conversation's Board tab instead (header shows the board's code and
-  workspace), and switches to native resolution once that workspace gets its own conversation. The pin
-  lives only in the conversation it was opened from (other conversations keep showing their own board),
-  and opening a board while the Board view is already showing works reliably (the opener's tab click is
-  never mistaken for the user's board-tab toggle)
-- **Workspace click opens the board** (new default) or expands sessions (old behavior) — global toggle in
-  **Settings → Plugins → Kanban Flow** (the only place it lives)
-- **Per-task agent sessions**: pickup creates a session named `CODE-12 · Item name`; clicking a card jumps to it
-- **Board code** per workspace (2–6 chars): item ids like `API-3`, `DKF-17`
-- Items carry **id, name, description** — progress narration lives in the task session conversation, and each
-  card shows a compact latest-activity line ("harness moved to Done · 3 seconds ago")
-- **Settings**: one global preference — workspace-click behavior (Settings → Plugins → Kanban Flow) — and
-  per-board options in each board's gear menu: *require confirmation to complete work* (when on, the agent
-  can never reach Done; you complete by dragging Review → Done) and the board code
-- **Light & dark** via DSH design tokens with `light-dark()` column accents: slate/blue/violet/amber/emerald
-- Animations for create/move/comment, drag lift with column highlight, agent-changed cards pulse; all respect
-  `prefers-reduced-motion`
+**Boards live where your work lives**
+- One board per workspace, opened in-app on the conversation's **Board** tab — no popups
+- A kanban icon next to every workspace in the sidebar; workspace clicks open boards (toggleable back to session expansion in **Settings → Plugins → Kanban Flow**)
+- Board views poll every 3s, so agent moves appear on the board while you watch
+
+**One agent session per item**
+- Pickup creates a task session named `CODE-12 · Item name` — click a card to jump straight into it
+- Progress narration lives in that session; each card shows a compact latest-activity line ("harness moved to Done · 3 seconds ago")
+- Session-less workspaces aren't left out: their board pins into the current conversation's Board tab (header shows the board's code and workspace) and goes native once that workspace gets its own conversation
+
+**Yours to tune**
+- **Board code** per workspace (2–6 chars): item ids like `API-3`, `DKF-17`; existing ids stay stable when you change it
+- **Require confirmation to complete work** (per board, gear menu): when on, the agent can never reach Done — you complete by dragging Review → Done
+- Items carry id, name and description; deleting an item archives its task session
+
+**Looks at home in DSH**
+- Light & dark via DSH design tokens, with `light-dark()` column accents: slate/blue/violet/amber/emerald
+- Animated create/move/comment, drag lift with column highlight, agent-changed cards pulse — all respecting `prefers-reduced-motion`
 - English end-to-end
 
 ## Agent tools
@@ -66,10 +68,10 @@ work: it acknowledges, moves the item Review → In Progress and addresses the f
 `kanbanflow_get` · `kanbanflow_get_item` · `kanbanflow_create_item` · `kanbanflow_update_item` ·
 `kanbanflow_move_item` · `kanbanflow_delete_item` · `kanbanflow_set_code`
 
-## Storage
+## Storage & trust
 
-One JSON file per workspace: `<workspace>/.dsh-kanban-flow.json` (schema-versioned, migrated automatically,
-corrupt files are backed up before being reset).
+- One JSON file per workspace: `<workspace>/.dsh-kanban-flow.json` — schema-versioned, migrated automatically, corrupt files backed up before being reset. Your board data never leaves the workspace.
+- Ships prebuilt: no install-time scripts, no build step on install, and the only network call the client makes is to the plugin's own same-origin `/api/kanban-flow` route.
 
 ## Development
 
@@ -80,12 +82,13 @@ npm run typecheck
 npm run build     # rebuild lib/client.js (committed) via esbuild
 ```
 
+CI runs tests, typecheck and build on every push; tagging a version (`v*`) publishes it to npm.
+
 ## Notes
 
-- The sidebar icon and workspace-click behavior anchor on DSH 0.1.1-rc.2 sidebar markup (no per-row slot exists);
-  they degrade to native behavior if the markup changes, and icons only appear in the expanded sidebar.
-- Board views poll every 3s; agent moves appear on the next poll.
+- Built against DSH 0.1.1-rc.2. The sidebar icon and workspace-click behavior anchor on its sidebar markup (no per-row slot exists yet); they degrade to native behavior if the markup changes, and icons only appear in the expanded sidebar.
 
-## License
+## Credits & license
 
-MIT
+- Architecture partially based on [dsh-kanban](https://github.com/alpacachen/dsh-kanban) by its author — thank you.
+- MIT — see [LICENSE](LICENSE).
