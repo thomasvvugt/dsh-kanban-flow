@@ -2,10 +2,10 @@
 
 **Agent-driven kanban boards for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — one board per workspace, one task session per item.**
 
+![A kanban board in the DSH web UI: five fixed columns, one card per item, latest agent activity on every card](assets/screenshot.png)
+
 [![CI](https://github.com/thomasvvugt/dsh-kanban-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/thomasvvugt/dsh-kanban-flow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-![A kanban board in the DSH web UI: five fixed columns, one card per item, latest agent activity on every card](assets/screenshot.png)
 
 **You triage. The agent picks up, works, narrates every step in its own task session, and asks for review when it needs you.** The board enforces the workflow — not vibes: agents can't grab unassigned work, can't skip your review, and can't close items behind your back.
 
