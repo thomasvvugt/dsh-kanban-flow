@@ -1,0 +1,7 @@
+# dsh-kanban-flow bundle patch: inserts the plugin layer into the profile composition.
+# After install the row resolves by package name dsh-kanban-flow (Node finds this package
+# from the profile's node_modules). Layer order: @deepseek-ai/dsh-base -> this bundle ->
+# the profile's own cordis.patch.yml -> user --patch overrides.
+- insert:
+    - id: dsh-kanban-flow
+      name: "dsh-kanban-flow"
