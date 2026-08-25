@@ -1,6 +1,6 @@
 # Publishes to npm when a version tag (v*) is pushed, keeping the npm mirror in
 # sync with GitHub releases. Requires the NPM_TOKEN secret (npm access token
-# with publish rights) — without it the job is skipped with a notice.
+# with publish rights); without it the run succeeds with a notice and skips.
 name: Publish to npm
 
 on:
@@ -11,23 +11,37 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: ${{ secrets.NPM_TOKEN != '' }}
     permissions:
       contents: read
     steps:
+      - name: Check NPM_TOKEN
+        id: token
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::NPM_TOKEN secret is not set — skipping npm publish."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.token.outputs.present == 'true'
       - uses: actions/setup-node@v4
+        if: steps.token.outputs.present == 'true'
         with:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
       - name: Verify before publishing
+        if: steps.token.outputs.present == 'true'
         run: |
           npm ci
           npm test
           npm run typecheck
           npm run build
       - name: Publish
+        if: steps.token.outputs.present == 'true'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
