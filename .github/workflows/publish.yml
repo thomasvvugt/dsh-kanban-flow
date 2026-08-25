@@ -1,0 +1,33 @@
+# Publishes to npm when a version tag (v*) is pushed, keeping the npm mirror in
+# sync with GitHub releases. Requires the NPM_TOKEN secret (npm access token
+# with publish rights) — without it the job is skipped with a notice.
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.NPM_TOKEN != '' }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - name: Verify before publishing
+        run: |
+          npm ci
+          npm test
+          npm run typecheck
+          npm run build
+      - name: Publish
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
