@@ -1,6 +1,6 @@
 {
   "name": "dsh-kanban-flow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Agent-driven kanban board plugin for DeepSeek Harness: one board per workspace, per-task agent sessions, human/agent workflow guards, light/dark UI. Based on the dsh-kanban plugin architecture.",
   "type": "module",
   "main": "index.js",

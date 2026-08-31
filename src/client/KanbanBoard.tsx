@@ -390,28 +390,30 @@ export function KanbanBoard(props: KanbanBoardProps) {
 
   const content = board && (
     <div className="kf-body">
-      {COLUMN_IDS.map((colId) => {
-        const items = (board.items ?? []).filter((i) => i.columnId === colId)
-        return (
-          <KfColumn
-            key={colId}
-            colId={colId}
-            highlighted={overColumn === colId && dragItem !== null}
-            adding={adding === colId && colId === "backlog"}
-            items={items}
-            flashIds={flashIds}
-            lastLines={lastLines}
-            onAdd={(name, description) => {
-              void act("createItem", { name, description, columnId: "backlog" })
-              setAdding(null)
-            }}
-            onCancelAdd={() => setAdding(null)}
-            onOpenSession={openSession}
-            onEdit={(item) => setDialog({ item, columnId: item.columnId as ColumnId })}
-            onArchive={archiveItem}
-          />
-        )
-      })}
+      <div className="kf-columns">
+        {COLUMN_IDS.map((colId) => {
+          const items = (board.items ?? []).filter((i) => i.columnId === colId)
+          return (
+            <KfColumn
+              key={colId}
+              colId={colId}
+              highlighted={overColumn === colId && dragItem !== null}
+              adding={adding === colId && colId === "backlog"}
+              items={items}
+              flashIds={flashIds}
+              lastLines={lastLines}
+              onAdd={(name, description) => {
+                void act("createItem", { name, description, columnId: "backlog" })
+                setAdding(null)
+              }}
+              onCancelAdd={() => setAdding(null)}
+              onOpenSession={openSession}
+              onEdit={(item) => setDialog({ item, columnId: item.columnId as ColumnId })}
+              onArchive={archiveItem}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 

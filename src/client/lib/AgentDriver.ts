@@ -45,6 +45,8 @@ function replyLine(): string {
   return "If the human replies while the item is in Review or Done: move it back to In Progress (Review -> In Progress / Done -> In Progress) and address their message in the same turn."
 }
 
+const scopeLine = () => "Scope limit: execute ONLY the work described in this item. If other work surfaces (other items, side tasks, extra refactors), do not start it \u2014 mention it in the conversation and let the human queue a separate item."
+
 function pickupPrompt(board: Board, item: Item): string {
   return [
     `Kanban pickup: item ${item.id} "${item.name}" was moved to To Do by the human.`,
@@ -57,6 +59,7 @@ function pickupPrompt(board: Board, item: Item): string {
     `5. ${confirmRulesLine(board)}`,
     "",
     replyLine(),
+    scopeLine(),
     `Always reference the item by id ${item.id}. Never modify other items.`,
   ].join("\n")
 }
@@ -68,6 +71,7 @@ function requeuePrompt(board: Board, item: Item): string {
     confirmRulesLine(board),
     "",
     replyLine(),
+    scopeLine(),
     `Always reference the item by id ${item.id}.`,
   ].join("\n")
 }
@@ -78,6 +82,7 @@ function resumeInProgressPrompt(board: Board, item: Item): string {
     "Continue working on it: give a short status in this conversation, address any feedback, then proceed per the workflow.",
     confirmRulesLine(board),
     "",
+    scopeLine(),
     `Always reference the item by id ${item.id}.`,
   ].join("\n")
 }

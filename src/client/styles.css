@@ -36,6 +36,7 @@
   flex: none;
   display: flex;
   align-items: center;
+  flex-wrap: wrap; /* narrow screens: controls wrap to a second row */
   gap: 10px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--dsw-alias-border-l2);
@@ -96,21 +97,46 @@ div:has(> .kf-root) {
   overflow: hidden !important;
 }
 
+/* The board renders in-app inside the conversation view area (Board tab).
+   It is a query container for its own layout: the view area's width varies
+   with the shell's sidebars, so the column layout must react to the board's
+   actual width, not the viewport. */
 .kf-body {
   flex: 1;
   min-height: 0;
-  display: flex;
-  gap: 12px;
   padding: 14px 18px 18px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  container: kf-board / inline-size;
+}
+
+/* Column wrapper: mobile-first — columns stack full-width (phone, tablet);
+   the container query below flips them to the 5-across row on wide boards. */
+.kf-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Wide boards: five equal columns that scale with the screen and together
+   take up the entire width; each column keeps its own internal scroll.
+   The flex override uses .kf-columns > .kf-column (higher specificity than
+   the base .kf-column { flex: none } below) so it reliably wins the cascade. */
+@container kf-board (min-width: 900px) {
+  .kf-columns {
+    flex-direction: row;
+    height: 100%;
+  }
+  .kf-columns > .kf-column {
+    flex: 1 1 0;
+    min-width: 0;
+  }
 }
 
 /* ---------------------------------------------------------------- column */
 .kf-column {
   --kf-accent: var(--dsw-alias-label-secondary);
-  flex: 0 0 264px;
-  width: 264px;
+  flex: none;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -255,6 +281,10 @@ div:has(> .kf-root) {
 .kf-archive-fab { right: 6px; }
 .kf-edit-fab { right: 32px; }
 .kf-card:hover .kf-edit-fab, .kf-card:hover .kf-archive-fab { display: inline-flex; }
+/* Touch screens have no hover to reveal the card actions — always show them. */
+@media (hover: none) {
+  .kf-edit-fab, .kf-archive-fab { display: inline-flex; }
+}
 .kf-edit-fab:hover, .kf-archive-fab:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
 .kf-drag-ghost {
   box-shadow: 0 12px 32px light-dark(rgba(15, 23, 42, 0.22), rgba(0, 0, 0, 0.6));
@@ -289,7 +319,7 @@ div:has(> .kf-root) {
 .kf-textarea { min-height: 54px; resize: vertical; }
 .kf-input:focus,
 .kf-textarea:focus { border-color: var(--dsw-alias-brand-primary); }
-.kf-newitem-row { display: flex; gap: 6px; justify-content: flex-end; }
+.kf-newitem-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 
 .kf-btn {
   cursor: pointer;

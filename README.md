@@ -2,7 +2,7 @@
 
 **Agent-driven kanban boards for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — one board per workspace, one task session per item.**
 
-![A kanban board in the DSH web UI: five fixed columns, one card per item, latest agent activity on every card](assets/screenshot.png)
+![A kanban board in the DSH web UI: five columns, one card per item, latest agent activity on every card](assets/screenshot.png)
 
 [![CI](https://github.com/thomasvvugt/dsh-kanban-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/thomasvvugt/dsh-kanban-flow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -31,7 +31,7 @@ Columns are fixed: **Backlog → To Do → In Progress → Review → Done**
 | --- | --- | --- |
 | Human | Backlog → To Do | Hand the item to the agent (the only pickup trigger) |
 | Agent | To Do → In Progress | Confirm pickup, start work |
-| Agent | In Progress → Review | Needs a human (comment with the question is mandatory) |
+| Agent | In Progress → Review | Needs a human (state the question in the task session / conversation) |
 | Agent | Review → In Progress | Resume straight after human feedback |
 | Agent | Done → In Progress | Reopen when the human replies on a finished item |
 | Agent | In Progress → Done | Self-evaluated completion — only when confirmation is OFF |
@@ -39,7 +39,7 @@ Columns are fixed: **Backlog → To Do → In Progress → Review → Done**
 
 The host plugin enforces all of this in the `kanbanflow_move_item` tool — agents never move items into To Do, never complete from Review, and illegal moves are rejected with an explanation.
 
-Commenting on an item while it is in Review (on the card **or** in the item's task session) sends the agent back to work: it acknowledges, moves the item Review → In Progress and addresses the feedback in the same turn.
+Replying in the item's task session while it is in Review sends the agent back to work: it acknowledges, moves the item Review → In Progress and addresses the feedback in the same turn.
 
 ## Highlights
 
@@ -60,7 +60,8 @@ Commenting on an item while it is in Review (on the card **or** in the item's ta
 
 **Looks at home in DSH**
 - Light & dark via DSH design tokens, with `light-dark()` column accents: slate/blue/violet/amber/emerald
-- Animated create/move/comment, drag lift with column highlight, agent-changed cards pulse — all respecting `prefers-reduced-motion`
+- Responsive board: the five columns scale to fill the available width on desktop and stack vertically on tablet/phone (container queries, so it reacts to the board's real width — sidebars and all)
+- Animated create/move transitions, drag lift with column highlight, agent-changed cards pulse — all respecting `prefers-reduced-motion`
 - English end-to-end
 
 ## Agent tools
