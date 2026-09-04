@@ -47,6 +47,9 @@ function replyLine(): string {
 
 const scopeLine = () => "Scope limit: execute ONLY the work described in this item. If other work surfaces (other items, side tasks, extra refactors), do not start it \u2014 mention it in the conversation and let the human queue a separate item."
 
+const statusLine = (item: Item) =>
+  `At the end of EVERY turn, set your status with kanbanflow_set_status (id: ${item.id}): max 2 sentences \u2014 what is done, what is next or what you need from the human. The human sees it when hovering your card on the board.`
+
 function pickupPrompt(board: Board, item: Item): string {
   return [
     `Kanban pickup: item ${item.id} "${item.name}" was moved to To Do by the human.`,
@@ -60,6 +63,7 @@ function pickupPrompt(board: Board, item: Item): string {
     "",
     replyLine(),
     scopeLine(),
+    statusLine(item),
     `Always reference the item by id ${item.id}. Never modify other items.`,
   ].join("\n")
 }
@@ -72,6 +76,7 @@ function requeuePrompt(board: Board, item: Item): string {
     "",
     replyLine(),
     scopeLine(),
+    statusLine(item),
     `Always reference the item by id ${item.id}.`,
   ].join("\n")
 }
@@ -83,6 +88,7 @@ function resumeInProgressPrompt(board: Board, item: Item): string {
     confirmRulesLine(board),
     "",
     scopeLine(),
+    statusLine(item),
     `Always reference the item by id ${item.id}.`,
   ].join("\n")
 }

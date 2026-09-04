@@ -4,6 +4,7 @@
  * 3s poll that keeps agent changes flowing in while a board is visible.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
+import { createPortal } from "react-dom"
 import {
   DndContext,
   DragOverlay,
@@ -21,7 +22,7 @@ import {
 } from "@dnd-kit/core"
 import { callFlow } from "@/lib/api"
 import { notifyBoard } from "@/lib/AgentDriver"
-import { activityParts } from "@/lib/activity"
+import { activityParts, relTime } from "@/lib/activity"
 import { getConfirmArchive, subscribeArchiveConfirm } from "@/lib/store"
 import { dismissBoardTab } from "./Controllers"
 import { COLUMN_IDS, COLUMN_TITLES, type Board, type ColumnId, type Item } from "@/lib/types"
@@ -79,9 +80,47 @@ interface CardProps {
 
 function KfCard({ item, flash, lastActivity, onOpenSession, onEdit, onArchive }: CardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id })
+  // Hover status tooltip: shows ONLY the agent's statusNote after a short
+  // delay; suppressed while dragging. Rendered through a portal because
+  // .kf-card clips overflow.
+  const [showTip, setShowTip] = useState(false)
+  const [tipPos, setTipPos] = useState<{ left: number; top: number; width: number } | null>(null)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  const tipTimer = useRef<number | null>(null)
+  const tip = item.statusNote
+    ? { title: "Status", body: item.statusNote, time: relTime(item.statusAt) }
+    : null
+  const tipOn = () => {
+    if (isDragging || !tip) return
+    if (tipTimer.current !== null) window.clearTimeout(tipTimer.current)
+    tipTimer.current = window.setTimeout(() => {
+      const el = cardRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      setTipPos({ left: r.left, top: r.top, width: r.width })
+      setShowTip(true)
+    }, 300)
+  }
+  const tipOff = () => {
+    if (tipTimer.current !== null) {
+      window.clearTimeout(tipTimer.current)
+      tipTimer.current = null
+    }
+    setShowTip(false)
+  }
+  useEffect(() => () => {
+    if (tipTimer.current !== null) window.clearTimeout(tipTimer.current)
+  }, [])
+  useEffect(() => {
+    if (isDragging) tipOff()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDragging])
   return (
     <div
-      ref={setNodeRef}
+      ref={(node) => {
+        cardRef.current = node
+        setNodeRef(node)
+      }}
       {...attributes}
       {...listeners}
       className={
@@ -90,6 +129,10 @@ function KfCard({ item, flash, lastActivity, onOpenSession, onEdit, onArchive }:
         (isDragging ? " kf-dragging" : "")
       }
       style={{ ["--kf-card-accent" as string]: "var(--kf-accent, var(--dsw-alias-label-secondary))" }}
+      onMouseEnter={tipOn}
+      onMouseLeave={tipOff}
+      onFocus={tipOn}
+      onBlur={tipOff}
       onClick={(e) => {
         if ((e.target as Element).closest(".kf-edit-fab, .kf-archive-fab")) return
         if (item.sessionId) onOpenSession()
@@ -116,6 +159,18 @@ function KfCard({ item, flash, lastActivity, onOpenSession, onEdit, onArchive }:
           <span className="kf-card-activity-phrase">{lastActivity.phrase}</span>
           <span className="kf-card-activity-time">{lastActivity.time}</span>
         </div>
+      )}
+      {showTip && tip && tipPos && createPortal(
+        <div
+          className="kf-card-tip"
+          role="tooltip"
+          style={{ left: tipPos.left, top: tipPos.top, width: tipPos.width, transform: "translateY(calc(-100% - 6px))" }}
+        >
+          <div className="kf-card-tip-title">{tip.title}{tip.time ? " · " + tip.time : ""}</div>
+          <div className="kf-card-tip-body">{tip.body}</div>
+          {item.sessionId && <div className="kf-card-tip-hint">Click to open the task session</div>}
+        </div>,
+        document.body,
       )}
     </div>
   )

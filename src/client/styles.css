@@ -258,6 +258,54 @@ div:has(> .kf-root) {
   color: var(--dsw-alias-label-tertiary);
   opacity: 0.75;
 }
+/* Hover tooltip: the agent's latest status note (fallback: last activity).
+   Portaled to body and fixed-positioned (cards clip their overflow). */
+.kf-card-tip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-2));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--dsw-alias-label-primary);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  animation: kf-tip-in 120ms ease-out;
+}
+@keyframes kf-tip-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.kf-card-tip-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--dsw-alias-label-tertiary);
+  margin-bottom: 3px;
+}
+.kf-card-tip-body {
+  white-space: pre-line;
+}
+.kf-card-tip-hint {
+  margin-top: 5px;
+  font-size: 10.5px;
+  color: var(--dsw-alias-label-tertiary);
+  opacity: 0.85;
+}
+/* Status note box in the item dialog. */
+.kf-status-box {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-2);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--dsw-alias-label-primary);
+}
 .kf-session-badge {
   display: inline-flex;
   align-items: center;

@@ -28,6 +28,7 @@ import {
   moveItem,
   setCode,
   setConfirmRequired,
+  setStatus,
   deriveCode,
 } from './lib/core.js'
 
@@ -228,6 +229,12 @@ export function apply(ctx) {
         await save(workspace, session)
         return ok({ message: r.message })
       }
+      case 'setStatus': {
+        const r = setStatus(board, { id: String(a.id || ''), note: a.note, actor })
+        if (r.error) return fail(r.error)
+        await save(workspace, session)
+        return ok({ message: r.message })
+      }
       case 'setConfirmRequired': {
         const r = setConfirmRequired(board, a.value === true)
         await save(workspace, session)
@@ -349,6 +356,7 @@ export function apply(ctx) {
           lines.push('Column: ' + COLUMN_TITLES[it.columnId])
           lines.push('Name: ' + it.name)
           if (it.description) lines.push('Description: ' + it.description)
+          if (it.statusNote) lines.push('Status: ' + it.statusNote + (it.statusAt ? ' (' + it.statusAt + ')' : ''))
         }
         return [{ type: 'text', text: lines.join('\n') }]
       }),
@@ -412,6 +420,21 @@ export function apply(ctx) {
       },
       output: output(renderSummary),
       async execute(args, exec) { return runTool('moveItem', args, exec) },
+    },
+    {
+      name: 'kanbanflow_set_status',
+      description: "Set the item's short status note (shown to the human on the board card on hover). Call this at the end of every turn: max 2 sentences — what is done, what is next or what you need from the human.",
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'Item id' },
+          note: { type: 'string', description: 'Short status text (max ~400 chars); empty string clears it' },
+        },
+        required: ['id', 'note'],
+        additionalProperties: false,
+      },
+      output: output(renderSummary),
+      async execute(args, exec) { return runTool('setStatus', args, exec) },
     },
     {
       name: 'kanbanflow_set_code',

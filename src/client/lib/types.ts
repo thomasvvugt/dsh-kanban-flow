@@ -10,6 +10,9 @@ export interface Item {
   sessionId: string | null
   createdAt: string | null
   createdBy: Actor
+  /** Short agent status note shown on hover (null when never set). */
+  statusNote?: string | null
+  statusAt?: string | null
 }
 
 export interface Activity {

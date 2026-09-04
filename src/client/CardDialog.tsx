@@ -4,7 +4,7 @@
  * comments, no linked items.
  */
 import { useEffect, useState } from "react"
-import { activityLine } from "@/lib/activity"
+import { activityLine, relTime } from "@/lib/activity"
 import { COLUMN_TITLES, type Board, type Item } from "@/lib/types"
 import type { SessionsService } from "./KanbanBoard"
 
@@ -52,6 +52,13 @@ export function CardDialog(props: CardDialogProps) {
         </div>
         <div className="kf-dialog-body">
           <div className="kf-muted">In <strong>{COLUMN_LABEL(item.columnId)}</strong>{item.sessionId ? " · linked to a task session" : ""}</div>
+
+          {item.statusNote && (
+            <div className="kf-status-box">
+              <div className="kf-fieldlabel">Status{item.statusAt ? " · " + relTime(item.statusAt) : ""}</div>
+              <div>{item.statusNote}</div>
+            </div>
+          )}
 
           <div>
             <div className="kf-fieldlabel">Name</div>

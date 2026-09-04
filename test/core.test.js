@@ -6,6 +6,7 @@ import {
   deleteItem,
   setCode,
   setConfirmRequired,
+  setStatus,
   checkAgentMove,
   normalizeCode,
   deriveCode,
@@ -63,6 +64,37 @@ describe('item ids', () => {
     const b = emptyBoard('TEST')
     b.items.push({ id: 'TEST-9', columnId: 'backlog', name: 'x', description: '', sessionId: null, createdAt: null, createdBy: 'human' })
     expect(nextItemId(b)).toBe('TEST-10')
+  })
+})
+
+describe('status notes', () => {
+  it('sets and clears the status note with a timestamp and activity record', () => {
+    const b = boardWith(1)
+    const r = setStatus(b, { id: 'TEST-1', note: '  Implemented the core, running tests next.  ', actor: 'agent' })
+    expect(r.error).toBeUndefined()
+    expect(b.items[0].statusNote).toBe('Implemented the core, running tests next.')
+    expect(typeof b.items[0].statusAt).toBe('string')
+    expect(b.activities.at(-1).type).toBe('item_status')
+    expect(b.activities.at(-1).source).toBe('agent')
+    const cleared = setStatus(b, { id: 'TEST-1', note: '   ', actor: 'agent' })
+    expect(cleared.error).toBeUndefined()
+    expect(b.items[0].statusNote).toBeNull()
+    expect(b.items[0].statusAt).toBeNull()
+  })
+  it('caps the note length and rejects unknown items', () => {
+    const b = boardWith(1)
+    const long = 'x'.repeat(1000)
+    setStatus(b, { id: 'TEST-1', note: long, actor: 'agent' })
+    expect(b.items[0].statusNote.length).toBe(400)
+    expect(setStatus(b, { id: 'NOPE', note: 'hi', actor: 'agent' }).error).toMatch(/not found/i)
+  })
+  it('cloneBoard carries status fields; unset stays null', () => {
+    const b = boardWith(1)
+    expect(cloneBoard(b).items[0].statusNote).toBeNull()
+    setStatus(b, { id: 'TEST-1', note: 'halfway', actor: 'human' })
+    const c = cloneBoard(b)
+    expect(c.items[0].statusNote).toBe('halfway')
+    expect(c.items[0].statusAt).toBe(b.items[0].statusAt)
   })
 })
 
